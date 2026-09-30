@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>杨周鑫 · 求大佬组队</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#12100f}
+  body{
+    font-family:"Zpix","Fusion Pixel 12px","Press Start 2P","Microsoft YaHei","PingFang SC",monospace;
+    -webkit-font-smoothing:none;
+    display:flex;flex-direction:column;
+    background:
+      radial-gradient(circle at 50% 30%, #2a2419 0%, #14120f 70%, #0a0908 100%);
+    user-select:none;-webkit-user-select:none;
+    touch-action:manipulation;
+  }
+
+  /* ---------- 顶栏 ---------- */
+  #topbar{
+    flex:0 0 auto;display:flex;align-items:center;gap:10px;
+    padding:9px 14px;
+    background:linear-gradient(180deg,#8a5a2b 0%,#6b4420 60%,#5a3819 100%);
+    border-bottom:4px solid #3a2410;
+    box-shadow:0 4px 0 rgba(0,0,0,.35),inset 0 2px 0 rgba(255,220,160,.28);
+    position:relative;z-index:20;
+  }
+  #logo{
+    font-size:14px;font-weight:bold;color:#ffe9b8;letter-spacing:1.5px;
+    text-shadow:1px 1px 0 #3a2410;white-space:nowrap;
+  }
+  #logo span{color:#ffd75e}
+  #hint{
+    flex:1;font-size:11px;color:#ffdfae;opacity:.92;
+    text-shadow:1px 1px 0 #3a2410;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  #hint b{color:#fff3c4;background:rgba(0,0,0,.22);padding:1px 5px;border-radius:3px}
+  .tb-btn{
+    flex:0 0 auto;cursor:pointer;border:2px solid #3a2410;border-radius:4px;
+    background:linear-gradient(180deg,#ffd97a,#e0a83d);
+    color:#3a2410;font-family:inherit;font-size:11px;font-weight:bold;
+    padding:5px 10px;box-shadow:0 2px 0 #3a2410;
+    transition:transform .07s,filter .12s;
+  }
+  .tb-btn:hover{filter:brightness(1.12)}
+  .tb-btn:active{transform:translateY(2px);box-shadow:0 0 0 #3a2410}
+  .tb-btn.off{background:linear-gradient(180deg,#9a9186,#6d675f);color:#2a2622}
+
+  /* ---------- 舞台 ---------- */
+  #stage{
+    flex:1 1 auto;position:relative;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:10px;
+  }
+  #frame{
+    position:relative;line-height:0;
+    border:4px solid #3a2410;border-radius:6px;
+    box-shadow:
+      0 0 0 4px #7a5124,
+      0 12px 34px rgba(0,0,0,.62),
+      inset 0 0 0 2px rgba(255,220,160,.18);
+    overflow:hidden;background:#5aa03c;
+  }
+  #game{
+    display:block;
+    image-rendering:pixelated;
+    image-rendering:-moz-crisp-edges;
+    image-rendering:crisp-edges;
+    cursor:pointer;
+  }
+
+  /* 色调氛围叠层 */
+  #vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 50%,rgba(255,240,190,0) 52%,rgba(30,20,10,.30) 100%);
+    mix-blend-mode:multiply;
+  }
+
+  /* ---------- 场景名浮标 ---------- */
+  #sceneTag{
+    position:absolute;left:10px;top:10px;pointer-events:none;
+    font-size:11px;font-weight:bold;color:#fff6dc;
+    background:rgba(40,26,12,.74);
+    border:2px solid #ffd75e;border-radius:4px;
+    padding:4px 9px;
+    text-shadow:1px 1px 0 #000;
+    opacity:0;transform:translateY(-6px);
+    transition:opacity .25s,transform .25s;
+  }
+  #sceneTag.show{opacity:1;transform:translateY(0)}
+
+  /* ---------- 对话框 ---------- */
+  #overlay{
+    position:absolute;inset:0;z-index:30;
+    display:none;align-items:center;justify-content:center;
+    padding:16px;
+    background:rgba(12,8,4,.58);
+    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);
+  }
+  #overlay.show{display:flex;animation:fadeIn .18s ease-out}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  #dialog{
+    position:relative;width:100%;max-width:560px;max-height:100%;
+    display:flex;flex-direction:column;
+    background:linear-gradient(180deg,#fdf3d8 0%,#f6e6bd 100%);
+    border:4px solid #6b4420;border-radius:8px;
+    box-shadow:
+      0 0 0 3px #ffd75e,
+      0 0 0 6px #3a2410,
+      0 16px 40px rgba(0,0,0,.6);
+    animation:pop .26s cubic-bezier(.2,1.5,.45,1);
+    overflow:hidden;
+  }
+  @keyframes pop{from{transform:scale(.84) translateY(14px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+  #dialog.closing{animation:popOut .17s ease-in forwards}
+  @keyframes popOut{to{transform:scale(.88) translateY(10px);opacity:0}}
+
+  #dlgHead{
+    flex:0 0 auto;position:relative;
+    display:flex;align-items:center;gap:10px;
+    padding:11px 52px 11px 14px;
+    background:linear-gradient(180deg,#8a5a2b,#5f3c1c);
+    border-bottom:3px solid #3a2410;
+  }
+  #dlgIcon{
+    flex:0 0 auto;width:26px;height:26px;border-radius:5px;
+    border:2px solid #3a2410;box-shadow:inset 0 0 0 2px rgba(255,255,255,.22);
+  }
+  #dlgTitle{
+    display:block;font-size:14px;font-weight:bold;color:#ffe9b8;letter-spacing:1.5px;
+    line-height:1.35;text-shadow:1px 1px 0 #3a2410;
+  }
+  #dlgSub{display:block;font-size:9px;color:#ffd18a;text-shadow:1px 1px 0 #3a2410;opacity:.9;letter-spacing:1px;line-height:1.2}
+
+  #dlgClose{
+    position:absolute;right:9px;top:9px;
+    width:30px;height:30px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-family:inherit;font-size:15px;font-weight:bold;line-height:1;
+    color:#5a2b12;
+    background:linear-gradient(180deg,#ffd97a,#e0a83d);
+    border:2px solid #3a2410;border-radius:5px;
+    box-shadow:0 2px 0 #3a2410;
+    transition:transform .07s,filter .12s,background .12s;
+  }
+  #dlgClose:hover{background:linear-gradient(180deg,#ff9a6a,#e2662f);color:#fff;filter:brightness(1.06)}
+  #dlgClose:active{transform:translateY(2px);box-shadow:0 0 0 #3a2410}
+
+  #dlgBody{
+    flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;
+    padding:13px 15px 15px;
+  }
+  #dlgBody::-webkit-scrollbar{width:9px}
+  #dlgBody::-webkit-scrollbar-track{background:#e5d3a6}
+  #dlgBody::-webkit-scrollbar-thumb{background:#a87c3f;border:2px solid #e5d3a6;border-radius:5px}
+
+  .row{display:flex;gap:9px;padding:5px 0;border-bottom:2px dotted #d9c48f;align-items:flex-start}
+  .row:last-child{border-bottom:none}
+  .k{
+    flex:0 0 auto;min-width:52px;font-size:12px;font-weight:bold;color:#8a5a2b;
+    text-shadow:1px 1px 0 rgba(255,255,255,.6);padding-top:1px;
+  }
+  .k::before{content:"◈ ";color:#e0a83d}
+  .v{flex:1;font-size:12px;color:#4a3218;line-height:1.72;word-break:break-word}
+
+  .quote{
+    margin:12px 0 4px;padding:9px 11px;
+    background:linear-gradient(180deg,#fff8e2,#f3e3ba);
+    border:2px solid #d9bd7d;border-left:5px solid #e0a83d;border-radius:5px;
+    font-size:12px;color:#6b4420;line-height:1.75;font-style:italic;
+  }
+  .cta{
+    margin-top:12px;padding:11px 12px 12px;text-align:center;
+    background:linear-gradient(180deg,#8a5a2b,#5f3c1c);
+    border:2px solid #3a2410;border-radius:6px;
+    font-size:12px;font-weight:bold;color:#ffe9b8;letter-spacing:.6px;
+    line-height:1.85;
+    text-shadow:2px 2px 0 #3a2410;
+    animation:glow 1.9s ease-in-out infinite;
+  }
+  @keyframes glow{0%,100%{box-shadow:0 0 0 rgba(255,215,94,0)}50%{box-shadow:0 0 14px rgba(255,215,94,.55)}}
+  .cta small{display:block;margin-top:7px;font-size:10px;font-weight:normal;color:#ffd18a;letter-spacing:0;line-height:1.6}
+
+  /* ---------- 底部提示条 ---------- */
+  #foot{
+    flex:0 0 auto;padding:6px 14px 8px;
+    background:linear-gradient(180deg,#3a2410,#241608);
+    border-top:3px solid #6b4420;
+    font-size:10px;color:#c9a877;text-align:center;
+    text-shadow:1px 1px 0 #000;letter-spacing:.4px;
+  }
+  #foot b{color:#ffd75e}
+
+  @media (max-width:640px){
+    #logo{font-size:12px}
+    #hint{font-size:9.5px}
+    .tb-btn{font-size:10px;padding:4px 7px}
+    .k{min-width:46px;font-size:11px}
+    .v{font-size:11px}
+    #dlgTitle{font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="logo">杨周鑫 <span>· 求大佬组队</span></div>
+  <div id="hint"><b>点击小屋的门</b> 让小人走进去看看 ↑ 先点一下页面才能开声音</div>
+  <button class="tb-btn" id="btnMusic">♪ 音乐：开</button>
+  <button class="tb-btn" id="btnSfx">♬ 音效：开</button>
+</div>
+
+<div id="stage">
+  <div id="frame">
+    <canvas id="game"></canvas>
+    <div id="vignette"></div>
+    <div id="sceneTag"></div>
+
+    <div id="overlay">
+      <div id="dialog" role="dialog" aria-modal="true">
+        <div id="dlgHead">
+          <div id="dlgIcon"></div>
+          <div>
+            <div id="dlgTitle">标题</div>
+            <div id="dlgSub">副标题</div>
+          </div>
+          <button id="dlgClose" title="关闭 (Esc)">✕</button>
+        </div>
+        <div id="dlgBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="foot">Stardew 风格像素小屋 · <b>4 间屋子</b>分别写着我的履历 / 介绍 / 性格 / 技能 —— 挨个进去看看，觉得合适就拉我入队 🌾</div>
+
+<script>
+'use strict';
+/* =========================================================================
+   杨周鑫 · 黑客松求组队 —— 像素 2D 星露谷风格交互页面
+   全部美术 / 音乐 / 音效均由代码实时生成，无任何外部资源依赖。
+   ========================================================================= */
+
+/* ------------------------------------------------------------------ 数据 */
+const HOUSES = [
+  {
+    id:'resume', name:'个人履历', sub:'RESUME', wall:'#e8d3a4', roof:'#c0453c', door:'#8a4b22',
+    x:1, y:3, w:3, h:3, dx:2, dy:5,
+    icon:'#c0453c',
+    rows:[
+      ['姓名','杨周鑫'],
+      ['年龄','19 岁'],
+      ['身份','大学一年级在读（大一新生）'],
+      ['工具链','Claude Code · Codex · DSH —— 日常主力，熟练运用'],
+      ['擅长','网页设计、Demo 展示、沟通交际'],
+      ['状态','🔥 正在寻找靠谱大佬组队']
+    ],
+    quote:'“大一怎么了？我的产出速度，可不像大一。”'
+  },
+  {
+    id:'intro', name:'基本介绍', sub:'ABOUT ME', wall:'#dbe6f0', roof:'#3f7fc0', door:'#7a5124',
+    x:12, y:3, w:3, h:3, dx:13, dy:5,
+    icon:'#3f7fc0',
+    rows:[
+      ['称呼','杨周鑫，直接喊我名字就行'],
+      ['年龄','19 岁'],
+      ['身份','大一学生 · 黑客松参赛选手'],
+      ['性格','活泼开朗，见谁都聊得来'],
+      ['状态','虚心、细心，永远在学新东西'],
+      ['口头禅','“这个我来试试！”']
+    ],
+    quote:'“技术可以补，热情和靠谱补不了 —— 我两样都有。”'
+  },
+  {
+    id:'trait', name:'性格特点', sub:'PERSONALITY', wall:'#f0dcc4', roof:'#e08a30', door:'#8a4b22',
+    x:1, y:7, w:3, h:3, dx:2, dy:9,
+    icon:'#e08a30',
+    rows:[
+      ['活泼开朗','自来熟，冷场终结者，团队气氛组核心成员'],
+      ['能交际','和评委、其他队伍、赞助商都能聊到一块儿去'],
+      ['虚心','听得进意见，被指出问题第一反应是改，不是辩'],
+      ['细心','细节控，交出去的东西自己先挑三遍毛病'],
+      ['抗压','赶 deadline 不摆烂，越紧张越兴奋'],
+      ['团队','不抢功、不掉链子，说到的就一定做到']
+    ],
+    quote:'“我可以当那个把大家黏在一起的人。”'
+  },
+  {
+    id:'skill', name:'能干什么', sub:'WHAT I DO', wall:'#d8e6d0', roof:'#4a9b4a', door:'#7a5124',
+    x:12, y:7, w:3, h:3, dx:13, dy:9,
+    icon:'#4a9b4a',
+    rows:[
+      ['网页设计','从 0 到 1 做出好看的界面，审美在线，能落实到像素'],
+      ['AI 工具流','熟练运用 Claude Code / Codex / DSH，把想法快速变成能跑的东西'],
+      ['快速出活','主打一个「今晚就能看到 Demo」，不拖到最后一刻'],
+      ['Demo 展示','擅长讲 Demo —— 把技术亮点讲成评委一听就懂的故事'],
+      ['上台路演','口才好，能交际，路演环节我来扛'],
+      ['补位','写文档、做 PPT、剪视频、跑腿对接，缺哪补哪']
+    ],
+    quote:'“你们负责强，我负责让大家看见你们有多强。”',
+    cta:'🙋 缺一个能设计、能路演、能落地、还能活跃气氛的队友？<small>拉我入队，现在就开始干</small>'
+  }
+];
+
+/* ------------------------------------------------------------------ 常量 */
+const TILE = 16, MW = 16, MH = 12;
+const VW = MW * TILE, VH = MH * TILE;      // 256 x 192
+
+const cvs = document.getElementById('game');
+cvs.width = VW; cvs.height = VH;
+const ctx = cvs.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+/* 像素工具 */
+const px = (x,y,w,h,c)=>{ ctx.fillStyle=c; ctx.fillRect(x|0,y|0,w|0,h|0); };
+function rrect(x,y,w,h,c){
+  ctx.fillStyle=c;
+  ctx.fillRect(x+2,y,w-4,1); ctx.fillRect(x+2,y+h-1,w-4,1);
+  ctx.fillRect(x,y+2,1,h-4); ctx.fillRect(x+w-1,y+2,1,h-4);
+  ctx.fillRect(x+1,y+1,1,1); ctx.fillRect(x+w-2,y+1,1,1);
+  ctx.fillRect(x+1,y+h-2,1,1); ctx.fillRect(x+w-2,y+h-2,1,1);
+}
+
+/* ------------------------------------------------------------------ 世界 */
+const world = { trees:[], bushes:[], flowers:[], rocks:[], tufts:[], houseExtra:null, smoke:[] };
+
+/* 小装饰屋（不可交互，只是地标） */
+world.houseExtra = { x:6, y:0, w:4, h:1 };
+
+/* 树木：树冠会盖住上方，所以要按 y 排序绘制
+   注意：边界列 0/1 与 14/15 的 y=4 格必须留空，否则会堵死上门的门前落脚点 */
+[[0,0],[1,1],[15,0],[0,11],[15,11],
+ [0,7],[15,7],[3,11],[12,11],[1,6],[14,6],
+ [6,2],[9,2],[0,3],[15,3],[4,0],[11,0]]
+  .forEach(([x,y])=>world.trees.push({x,y,s:0}));
+
+/* 灌木 */
+[[0,1],[15,1],[0,9],[15,9],[1,11],[14,11]]
+  .forEach(([x,y])=>world.bushes.push({x,y}));
+
+/* 石头 */
+[[3,11],[12,11],[5,11],[10,11]].forEach(([x,y])=>world.rocks.push({x,y}));
+
+/* 小花（纯装饰，不挡路） */
+[[1,4],[14,4],[1,5],[14,5],[1,8],[14,8],[2,6],[13,6],[2,10],[13,10],
+ [6,11],[9,11],[7,11],[8,11],[1,2],[14,2],[3,6],[12,6]]
+  .forEach(([x,y])=>world.flowers.push({x,y,t:Math.random()*6}));
+[[2,3],[13,3],[2,4],[13,4],[3,5],[12,5],[3,9],[12,9],
+ [5,5],[10,5],[5,9],[10,9],[6,5],[9,5]]
+  .forEach(([x,y])=>world.tufts.push({x,y}));
+
+/* ---------------- 可通行网格 ---------------- */
+const solid = new Uint8Array(MW*MH);
+const IDX = (tx,ty)=> ty*MW+tx;
+const block = (tx,ty)=>{ if(tx>=0&&ty>=0&&tx<MW&&ty<MH) solid[IDX(tx,ty)]=1; };
+const isSolid = (tx,ty)=> (tx<0||ty<0||tx>=MW||ty>=MH) ? true : solid[IDX(tx,ty)]===1;
+
+/* 边界围墙 */
+for(let x=0;x<MW;x++){ block(x,0); block(x,MH-1); }
+for(let y=0;y<MH;y++){ block(0,y); block(MW-1,y); }
+
+/* 小屋占地（门所在格保持可通行） */
+const OPEN_DOOR = new Set();
+for(const h of HOUSES){
+  h.open = 0; h.anim = 0;
+  for(let ty=h.y; ty<h.y+h.h; ty++)
+    for(let tx=h.x; tx<h.x+h.w; tx++)
+      if(!(tx===h.dx && ty===h.dy)) block(tx,ty);
+  OPEN_DOOR.add(h.dx+','+h.dy);
+  h.doorOpen = false;
+}
+/* 地标小屋 */
+for(let tx=world.houseExtra.x; tx<world.houseExtra.x+world.houseExtra.w; tx++)
+  for(let ty=world.houseExtra.y; ty<world.houseExtra.y+world.houseExtra.h; ty++) block(tx,ty);
+
+/* 树木 / 灌木 / 石头 挡路 */
+world.trees.forEach(t=>block(t.x,t.y));
+world.bushes.forEach(b=>block(b.x,b.y));
+world.rocks.forEach(r=>block(r.x,r.y));
+
+/* ---------------- 地面绘制 ---------------- */
+function drawGround(t){
+  for(let ty=0;ty<MH;ty++){
+    for(let tx=0;tx<MW;tx++){
+      const x = tx*TILE, y = ty*TILE;
+      ctx.fillStyle = ((tx+ty)&1) ? '#5aa03c' : '#67ad46';
+      ctx.fillRect(x, y, TILE, TILE);
+
+      if(isPath(tx,ty)){
+        px(x, y, TILE, TILE, '#c9a86a');
+        px(x+3, y+5, 2,2,'rgba(0,0,0,.08)');
+        px(x+10, y+11, 2,2,'rgba(255,255,255,.13)');
+        px(x, y, TILE, 2,'rgba(60,100,40,.14)');      // 路边的草沿
+      } else if(isPlaza(tx,ty)){
+        px(x, y, TILE, TILE, ((tx+ty)&1) ? '#d3c8af' : '#cbbfa6');
+        px(x, y, TILE, 1,'rgba(255,255,255,.22)');
+        px(x, y+TILE-1, TILE, 1,'rgba(90,70,40,.13)');
+        px(x+TILE-1, y, 1, TILE,'rgba(90,70,40,.10)');
+      }
+    }
+  }
+  /* 草丛纹理（只铺在草地上，不盖路和广场） */
+  for(let i=0;i<80;i++){
+    const gx = ((i*37)%(MW-2))+1, gy = ((i*53)%(MH-2))+1;
+    if(isPath(gx,gy) || isPlaza(gx,gy)) continue;
+    px(gx*TILE+3, gy*TILE+4, 3,1,'rgba(40,90,30,.30)');
+    px(gx*TILE+9, gy*TILE+10, 3,1,'rgba(40,90,30,.24)');
+  }
+}
+function isPath(tx,ty){
+  /* 两侧通廊：从广场直通上面两扇门 */
+  if(tx===1  && ty>=3 && ty<=10) return true;
+  if(tx===14 && ty>=3 && ty<=10) return true;
+  /* 上下横路：连接四个屋门 */
+  if(ty===5  && tx>=1 && tx<=14) return true;
+  if(ty===9  && tx>=1 && tx<=14) return true;
+  /* 进村小路 + 中心竖路 */
+  if(tx>=4  && tx<=11 && ty===3) return true;
+  if(tx>=7  && tx<=8  && ty>=3 && ty<=10) return true;
+  return false;
+}
+function isPlaza(tx,ty){ return tx>=5 && tx<=10 && ty>=6 && ty<=9; }
+
+/* ---------------- 装饰绘制 ---------------- */
+function drawTree(tx,ty){
+  const x = tx*TILE, y = ty*TILE;
+  px(x+9, y+12, 4, 4, '#7a5124');
+  px(x+9, y+12, 1, 4, '#8f6330');
+  px(x+4, y+2, 12, 12, '#2f6b2a');
+  px(x+5, y+1, 10, 14, '#3d8a34');
+  px(x+3, y+5, 14, 7, '#3d8a34');
+  px(x+6, y+2, 5, 4, '#57ab45');
+  px(x+9, y+5, 4, 4, '#4e9c3e');
+  px(x+5, y+9, 3, 2, '#2f6b2a');
+}
+function drawBush(tx,ty){
+  const x = tx*TILE, y = ty*TILE;
+  px(x+4, y+6, 12, 8, '#2f6b2a');
+  px(x+5, y+4, 10, 10, '#3d8a34');
+  px(x+7, y+5, 4, 3, '#57ab45');
+  px(x+5, y+11, 10, 3, '#2a5f26');
+}
+function drawRock(tx,ty){
+  const x = tx*TILE, y = ty*TILE;
+  px(x+5, y+7, 10, 7, '#7f7f7f');
+  px(x+6, y+5, 8, 9, '#9a9a9a');
+  px(x+7, y+6, 4, 3, '#b5b5b5');
+  px(x+5, y+12, 10, 2, '#5f5f5f');
+}
+function drawFlower(f, t){
+  const x = f.x*TILE, y = f.y*TILE;
+  const sway = Math.sin(t/620 + f.t) > 0.5 ? 1 : 0;
+  px(x+7, y+9, 2, 6, '#3d8a34');
+  const cx = x+7+sway, cy = y+6;
+  const col = ['#ff5a7a','#ffd75e','#ff9a4a','#c77dff'][Math.floor(f.t)%4];
+  px(cx+1, cy, 2, 2, col);
+  px(cx, cy+2, 2, 2, col);
+  px(cx+4, cy+2, 2, 2, col);
+  px(cx+2, cy+4, 2, 2, col);
+  px(cx+2, cy+2, 2, 2, '#fff3b0');
+}
+function drawTuft(tu){
+  const x = tu.x*TILE, y = tu.y*TILE;
+  px(x+5, y+10, 1, 5, '#3d8a34');
+  px(x+7, y+9, 1, 6, '#4e9c3e');
+  px(x+9, y+10, 1, 5, '#3d8a34');
+  px(x+6, y+11, 1, 4, '#2f6b2a');
+  px(x+8, y+11, 1, 4, '#2f6b2a');
+}
+
+/* ---------------- 小屋绘制 ---------------- */
+function drawHouse(h, t){
+  const x = h.x*TILE, y = h.y*TILE;
+  const w = h.w*TILE, hh = h.h*TILE;
+
+  /* 屋顶投影 */
+  px(x+2, y+hh-3, w-4, 3, 'rgba(0,0,0,.18)');
+
+  /* 墙体 */
+  px(x+1, y+14, w-2, hh-15, h.wall);
+  px(x+1, y+14, w-2, 2, 'rgba(255,255,255,.35)');
+  px(x+1, y+hh-3, w-2, 2, 'rgba(0,0,0,.16)');
+  /* 木纹 */
+  for(let i=0;i<5;i++){
+    const ly = y+20+i*6;
+    if(ly < y+hh-4) px(x+2, ly, w-4, 1, 'rgba(120,80,40,.16)');
+  }
+
+  /* 屋顶（梯形） */
+  for(let i=0;i<16;i++){
+    const seg = Math.min(i, 15-i);
+    const lw = w + seg*0.9;
+    const lx = x + (w-lw)/2;
+    let c = h.roof;
+    if(i<2) c = shade(h.roof, 1.28);
+    else if(i>12) c = shade(h.roof, 0.74);
+    else if(((i)&3)===2) c = shade(h.roof, 0.88);
+    px(lx, y+i, lw, 1, c);
+  }
+  /* 屋脊高光 */
+  px(x+2, y+1, w-4, 1, 'rgba(255,255,255,.34)');
+  px(x-1, y+15, w+2, 2, shade(h.roof,0.62));
+
+  /* 窗户 */
+  const winY = y+20;
+  [x+5, x+w-13].forEach(wx=>{
+    px(wx-1, winY-1, 10, 10, '#6b4420');
+    px(wx, winY, 8, 8, '#8ed4f0');
+    px(wx, winY, 8, 3, '#bfeaff');
+    px(wx+3, winY, 2, 8, '#6b4420');
+    px(wx, winY+3, 8, 2, '#6b4420');
+  });
+
+  /* 门（带开合动画） */
+  const o = h.open;                                  // 0 关 → 1 全开
+  const dw = 12, dh = 16;
+  const dx0 = x + (w-dw)/2, dy0 = y + hh - dh - 1;
+  px(dx0-2, dy0-2, dw+4, dh+2, '#6b4420');           // 门框
+  if(o < 0.98){
+    const cw = Math.max(1, Math.round(dw * (1-o*0.86)));
+    px(dx0, dy0, cw, dh, h.door);
+    px(dx0, dy0, cw, 2, shade(h.door,1.2));
+    for(let i=1;i<4;i++){
+      const ly = dy0 + i*4;
+      if(ly < dy0+dh-1) px(dx0+1, ly, Math.max(0,cw-2), 1, shade(h.door,0.85));
+    }
+    if(cw > 5) px(dx0+cw-4, dy0+dh/2, 2, 2, '#ffd75e');   // 门把手
+  }
+  if(o > 0.05){
+    px(dx0, dy0, dw, dh, '#1c130b');                      // 屋内暗部
+    px(dx0, dy0+dh-6, dw, 6, shade('#1c130b',1.5));
+    if(o > 0.45) px(dx0+2, dy0+2, dw-4, 3, 'rgba(255,190,90,.20)');
+  }
+
+  /* 门牌 */
+  const sy = y + 14;
+  px(x + h.w*TILE/2 - 9, sy-8, 18, 9, '#fdf3d8');
+  px(x + h.w*TILE/2 - 9, sy-8, 18, 1, '#6b4420');
+  px(x + h.w*TILE/2 - 9, sy, 18, 1, '#6b4420');
+  ctx.fillStyle = '#6b4420';
+  ctx.font = '7px "Microsoft YaHei",monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(h.name.slice(0,4), x + w/2, sy-4);
+
+  /* 门口台阶 */
+  px(dx0-3, y+hh-2, dw+6, 2, '#b9a88a');
+}
+function shade(hex, k){
+  const n = parseInt(hex.slice(1),16);
+  let r = (n>>16)&255, g = (n>>8)&255, b = n&255;
+  r = Math.max(0,Math.min(255, Math.round(r*k)));
+  g = Math.max(0,Math.min(255, Math.round(g*k)));
+  b = Math.max(0,Math.min(255, Math.round(b*k)));
+  return '#' + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+}
+
+/* 地标小屋（北侧，纯装饰） */
+function drawExtraHouse(t){
+  const x = 6*TILE, y = 0, w = 64, hh = 16;
+  px(x+2, y+hh-3, w-4, 3, 'rgba(0,0,0,.18)');
+  px(x+1, y+11, w-2, 4, '#efe0c0');
+  for(let i=0;i<11;i++){
+    const seg = Math.min(i, 10-i);
+    const lw = w + seg*0.9, lx = x + (w-lw)/2;
+    let c = '#9b5ac0';
+    if(i<2) c='#b978dd'; else if(i>8) c='#7a3f9c'; else if((i&3)===2) c='#8a4aad';
+    px(lx, y+i, lw, 1, c);
+  }
+  px(x+2, y+1, w-4, 1, 'rgba(255,255,255,.34)');
+  /* 小旗子 */
+  const fw = Math.sin(t/300) > 0 ? 0 : 1;
+  px(x+30, y-9, 1, 9, '#6b4420');
+  px(x+31, y-9, 7+fw, 4, '#ffd75e');
+}
+
+/* 中央喷泉 */
+const FOUNTAIN = {x:7, y:6};
+function drawFountain(t){
+  const x = FOUNTAIN.x*TILE, y = FOUNTAIN.y*TILE;
+  for(let i=0;i<4;i++){
+    const r = 16-i*2;
+    px(x+r/2 + (16-r)/2, y+r/2 + (16-r)/2, r, r, i===0?'#8f8f8f':(i===1?'#b7b7b7':'#8ed4f0'));
+  }
+  px(x, y, 32, 32, 'rgba(0,0,0,0)');
+  /* 圆形水池 */
+  px(x+1, y+3, 30, 26, '#8f8f8f');
+  px(x+3, y+1, 26, 30, '#8f8f8f');
+  px(x+3, y+5, 26, 22, '#6fb8dd');
+  px(x+5, y+7, 22, 18, '#8ed4f0');
+  /* 中央石柱 */
+  px(x+13, y+9, 6, 16, '#b7b7b7');
+  px(x+13, y+9, 2, 16, '#d5d5d5');
+  px(x+12, y+8, 8, 3, '#d5d5d5');
+  /* 喷水：左右各三道水柱，向外抛洒 */
+  for(let i=0;i<3;i++){
+    const ph = ((t/560) + i/3) % 1;
+    for(const s of [-1, 1]){
+      const dx = Math.round(s * ph * 9);
+      const dy = Math.round(Math.sin(ph*Math.PI) * 13);
+      px(x+16 + dx - 1, y+8 - dy, 2, 2, i===0 ? '#eafaff' : '#bfe8ff');
+    }
+  }
+  /* 顶上的水花 */
+  const top = (Math.sin(t/200) + 1) / 2;
+  px(x+15, y+2 - Math.round(top*2), 3, 3, '#eafaff');
+}
+
+/* 北侧大路牌 */
+function drawSign(){
+  const bw = 50, bh = 21;
+  const x = VW/2 - bw/2, y = 1*TILE + 3;      // 木牌左上角（水平居中）
+  /* 立柱 */
+  px(x+5,  y+bh, 5, 18, '#7a5124');
+  px(x+bw-10, y+bh, 5, 18, '#7a5124');
+  px(x+5,  y+bh, 2, 18, '#96682f');
+  px(x+bw-10, y+bh, 2, 18, '#96682f');
+  /* 牌面双层木框 */
+  px(x-2, y-2, bw+4, bh+4, '#5f3c1c');
+  px(x, y, bw, bh, '#a8792f');
+  px(x, y, bw, 3, '#c99a4a');
+  px(x, y+bh-3, bw, 3, '#8a6224');
+  px(x+2, y+3, bw-4, bh-6, '#f0dfb4');
+  px(x+2, y+3, bw-4, 1, '#fff6de');
+  px(x+2, y+bh-4, bw-4, 1, '#cbb083');
+  /* 木纹 */
+  px(x+5, y+9,  bw-10, 1, 'rgba(140,100,50,.20)');
+  px(x+7, y+15, bw-14, 1, 'rgba(140,100,50,.16)');
+  /* 文字（中文至少要 10px 才看得清） */
+  ctx.fillStyle = '#5f3c1c';
+  ctx.font = 'bold 10px "Microsoft YaHei","PingFang SC",monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('求大佬组队', x + bw/2, y + bh/2 + 1);
+}
+
+/* ------------------------------------------------------------------ 玩家 */
+const player = {
+  x: 8*TILE, y: 7*TILE, dir:'down',
+  path: [], moving:false, step:0, alpha:1,
+  state:'idle',          // idle | walk | enter | inside | exit
+  speed: 52,             // 像素 / 秒
+  target: null, after: null, enterT: 0, enterFrom: null
+};
+
+function drawPlayer(t){
+  const S = 2;
+  const walk = player.moving;
+  const ph = Math.floor(player.step) % 4;
+  const bob = walk ? [0,1,0,-1][ph] : 0;
+  const x = Math.round(player.x) + 8;
+  const y = Math.round(player.y) + 16 + bob;
+  if(player.alpha <= 0.01) return;
+  ctx.globalAlpha = player.alpha;
+
+  const d = player.dir;
+  const OUT='#2b1c12', SKIN='#f2c49a', SKIN_S='#d59b6e', HAIR='#6b3f21',
+        CAP='#e2483f', CAP_D='#a8322b', SHIRT='#4f7fd8', SHIRT_D='#3a63ad',
+        PANT='#3a3f5c', SHOE='#2b1c12';
+
+  const lf = walk ? [0,1,2,1][ph] : 0;    // 左腿偏移
+  const rf = walk ? [2,1,0,1][ph] : 0;
+  const arm = walk ? [-1,0,1,0][ph] : 0;
+
+  const P=(dx,dy,w,h,c)=>px(x+dx*S, y+dy*S, w*S, h*S, c);
+
+  if(d==='up'){
+    P(-4,-6,8,3,OUT); P(-3,-5,6,1,HAIR);
+    P(-3,-3,6,3,HAIR); P(-3,0,6,1,SKIN_S);
+    P(-4,-8,8,2,CAP); P(-4,-8,8,1,CAP_D); P(-4,-6,8,1,CAP);
+    P(-4,1,8,5,SHIRT); P(-4,1,8,1,SHIRT_D);
+    P(-6,1+arm,2,4,SHIRT); P(4,1-arm,2,4,SHIRT);
+    P(-6,5+arm,2,1,SKIN); P(4,5-arm,2,1,SKIN);
+    P(-4,6,8,3,PANT);
+    P(-4,9+ (lf?1:0),3,2,SHOE); P(1,9+(rf?1:0),3,2,SHOE);
+  } else if(d==='left'){
+    P(-4,-6,8,3,OUT); P(-4,-5,7,3,HAIR); P(-2,-2,5,2,HAIR);
+    P(-4,-8,8,2,CAP); P(-4,-8,8,1,CAP_D); P(-4,-6,8,1,CAP);
+    P(-4,-2,1,1,OUT);
+    P(-3,0,4,1,SKIN_S);
+    P(-4,0,3,2,SKIN);
+    P(-3,1,7,5,SHIRT); P(-3,1,7,1,SHIRT_D);
+    P(3,1+arm,2,4,SHIRT_D); P(3,5+arm,2,1,SKIN);
+    P(-3,6,7,3,PANT);
+    P(-3,9+lf,3,2,SHOE); P(1,9+rf,3,2,SHOE);
+  } else if(d==='right'){
+    P(-4,-6,8,3,OUT); P(-3,-5,7,3,HAIR); P(-3,-2,5,2,HAIR);
+    P(-4,-8,8,2,CAP); P(-4,-8,8,1,CAP_D); P(-4,-6,8,1,CAP);
+    P(3,-2,1,1,OUT);
+    P(-1,0,4,1,SKIN_S);
+    P(1,0,3,2,SKIN);
+    P(-4,1,7,5,SHIRT); P(-4,1,7,1,SHIRT_D);
+    P(-5,1+arm,2,4,SHIRT_D); P(-5,5+arm,2,1,SKIN);
+    P(-4,6,7,3,PANT);
+    P(-4,9+rf,3,2,SHOE); P(0,9+lf,3,2,SHOE);
+  } else {
+    P(-4,-6,8,3,OUT);
+    P(-3,-5,6,6,SKIN); P(-3,-2,6,3,SKIN_S);
+    P(-3,-5,6,2,HAIR); P(-4,-5,1,3,HAIR); P(3,-5,1,3,HAIR);
+    P(-4,-8,8,2,CAP); P(-4,-8,8,1,CAP_D);
+    P(-5,-6,9,1,CAP_D);
+    P(-2,-3,1,1,OUT); P(1,-3,1,1,OUT);
+    P(0,-1,1,1,'#c98a5e');
+    P(-4,1,8,5,SHIRT); P(-4,1,8,1,SHIRT_D);
+    P(-2,3,4,2,SHIRT_D);
+    P(-6,1+arm,2,4,SHIRT); P(4,1-arm,2,4,SHIRT);
+    P(-6,5+arm,2,1,SKIN); P(4,5-arm,2,1,SKIN);
+    P(-4,6,8,3,PANT); P(-4,6,8,1,'#2d3149');
+    P(-4,9+(lf?1:0),3,2,SHOE); P(1,9+(rf?1:0),3,2,SHOE);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* 阴影 */
+function drawShadow(){
+  const x = Math.round(player.x)+8, y = Math.round(player.y)+16;
+  ctx.globalAlpha = 0.22 * player.alpha;
+  px(x-5, y-1, 10, 3, '#000');
+  ctx.globalAlpha = 1;
+}
+
+/* ------------------------------------------------------------------ 寻路 */
+function bfs(sx, sy, gx, gy){
+  if(sx===gx && sy===gy) return [];
+  if(isSolid(gx,gy)) return null;
+  const prev = new Int32Array(MW*MH).fill(-1);
+  const seen = new Uint8Array(MW*MH);
+  const q = [IDX(sx,sy)]; seen[IDX(sx,sy)] = 1;
+  const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+  while(q.length){
+    const cur = q.shift();
+    const cx = cur % MW, cy = (cur / MW) | 0;
+    for(const [ddx,ddy] of DIRS){
+      const nx = cx+ddx, ny = cy+ddy;
+      if(nx<0||ny<0||nx>=MW||ny>=MH) continue;
+      const ni = IDX(nx,ny);
+      if(seen[ni] || isSolid(nx,ny)) continue;
+      seen[ni] = 1; prev[ni] = cur;
+      if(nx===gx && ny===gy){
+        const path = [];
+        let n = ni;
+        while(n !== -1 && n !== IDX(sx,sy)){ path.push({x:(n%MW)*TILE+8, y:((n/MW)|0)*TILE+8}); n = prev[n]; }
+        return path.reverse();
+      }
+      q.push(ni);
+    }
+  }
+  return null;
+}
+
+function walkTo(tx, ty, after){
+  const cx = Math.floor(player.x/TILE), cy = Math.floor(player.y/TILE);
+  let goal = {x:tx, y:ty};
+  if(isSolid(tx,ty)){
+    const alt = [[0,1],[0,-1],[1,0],[-1,0]].map(([a,b])=>({x:tx+a,y:ty+b})).find(p=>!isSolid(p.x,p.y));
+    if(!alt) return false;
+    goal = alt;
+  }
+  const path = bfs(cx, cy, goal.x, goal.y);
+  if(!path) return false;
+  player.path = path;
+  player.moving = true;
+  player.state = 'walk';
+  player.after = after || null;
+  if(!path.length){
+    /* 已经站在目标格上：不能当失败，直接结算（否则点脚下会没反应） */
+    player.after = null;
+    after ? after() : Audio_.sfx('coin');
+    if(player.state === 'walk'){ player.moving = false; player.state = 'idle'; }
+  }
+  return true;
+}
+
+/* ------------------------------------------------------------------ 音频 */
+const Audio_ = {
+  ctx:null, master:null, musicGain:null, sfxGain:null,
+  musicOn: localStorage.getItem('yzx_music') !== '0',
+  sfxOn:   localStorage.getItem('yzx_sfx')   !== '0',
+  timer:null, step:0, nextTime:0, started:false,
+
+  init(){
+    if(this.ctx || this.dead) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC){ this.dead = true; return; }
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.82;
+      this.master.connect(this.ctx.destination);
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = this.musicOn ? 0.20 : 0;
+      this.musicGain.connect(this.master);
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.value = this.sfxOn ? 0.34 : 0;
+      this.sfxGain.connect(this.master);
+    } catch(e){
+      /* 音频不可用也不能影响画面 */
+      this.dead = true; this.ctx = null;
+    }
+  },
+  resume(){
+    this.init();
+    if(this.ctx && this.ctx.state === 'suspended'){
+      try { this.ctx.resume(); } catch(e){}
+    }
+  },
+
+  /* ---------- 底层音色 ---------- */
+  tone(freq, time, dur, type, gain, dest, slideTo){
+    const c = this.ctx; if(!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, time);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30,slideTo), time+dur);
+    g.gain.setValueAtTime(0, time);
+    g.gain.linearRampToValueAtTime(gain, time+0.009);
+    g.gain.setValueAtTime(gain, time+dur*0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001, time+dur);
+    o.connect(g); g.connect(dest || this.musicGain);
+    o.start(time); o.stop(time+dur+0.03);
+  },
+  noise(time, dur, gain, freq, dest, type){
+    const c = this.ctx; if(!c) return;
+    const n = Math.max(1, Math.floor(c.sampleRate * dur));
+    const buf = c.createBuffer(1, n, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i] = Math.random()*2-1;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const f = c.createBiquadFilter();
+    f.type = type || 'bandpass'; f.frequency.value = freq || 1200; f.Q.value = 0.9;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gain, time);
+    g.gain.exponentialRampToValueAtTime(0.0001, time+dur);
+    src.connect(f); f.connect(g); g.connect(dest || this.sfxGain);
+    src.start(time); src.stop(time+dur+0.02);
+  },
+
+  /* ---------- 音效 ---------- */
+  sfx(name){
+    this.init(); if(!this.ctx || !this.sfxOn) return;
+    const c = this.ctx, t = c.currentTime, G = this.sfxGain;
+    switch(name){
+      case 'step':
+        this.noise(t, 0.055, 0.30, 500, G, 'lowpass');
+        this.tone(150, t, 0.05, 'triangle', 0.10, G, 90);
+        break;
+      case 'doorOpen':
+        [0,0.055,0.11,0.165].forEach((d,i)=>
+          this.tone([392,523.25,659.25,783.99][i], t+d, 0.16, 'triangle', 0.20, G));
+        this.noise(t, 0.34, 0.13, 850, G, 'bandpass');
+        break;
+      case 'doorClose':
+        [783.99,587.33,440,329.63].forEach((f,i)=>
+          this.tone(f, t+i*0.045, 0.12, 'triangle', 0.16, G));
+        this.noise(t+0.15, 0.11, 0.30, 240, G, 'lowpass');
+        break;
+      case 'open':
+        [523.25,659.25,783.99,1046.5].forEach((f,i)=>
+          this.tone(f, t+i*0.065, 0.22, 'square', 0.20, G));
+        this.tone(261.63, t, 0.30, 'triangle', 0.16, G);
+        break;
+      case 'close':
+        this.tone(523.25, t, 0.09, 'square', 0.17, G, 392);
+        this.tone(261.63, t+0.03, 0.11, 'triangle', 0.15, G, 196);
+        break;
+      case 'bump':
+        this.tone(180, t, 0.13, 'square', 0.16, G, 110);
+        break;
+      case 'click':
+        this.noise(t, 0.03, 0.18, 2400, G, 'highpass');
+        this.tone(880, t, 0.05, 'square', 0.12, G);
+        break;
+      case 'coin':
+        this.tone(1046.5, t, 0.07, 'square', 0.20, G);
+        this.tone(1568, t+0.07, 0.18, 'square', 0.18, G);
+        break;
+    }
+  },
+
+  /* ---------- chiptune 循环 ---------- */
+  BPM: 132,
+  MEL: [72,null,76,null,79,null,76,null, 74,null,77,null,81,null,79,null,
+        72,null,76,null,79,null,84,null, 83,81,79,null,76,null,74,null,
+        71,null,74,null,79,null,74,null, 72,null,76,null,81,null,76,null,
+        69,null,72,null,77,null,81,null, 79,null,76,null,72,null,null,null],
+  BASS:[48,null,48,null,43,null,43,null, 41,null,41,null,43,null,43,null,
+        48,null,48,null,43,null,43,null, 41,null,41,null,43,null,43,null,
+        47,null,47,null,48,null,48,null, 45,null,45,null,43,null,43,null,
+        41,null,41,null,43,null,43,null, 43,null,43,null,48,null,48,null],
+  KICK:[1,null,null,null,1,null,null,null, 1,null,null,null,1,null,null,null,
+        1,null,null,null,1,null,null,null, 1,null,null,null,1,null,null,null,
+        1,null,null,null,1,null,null,null, 1,null,null,null,1,null,null,null,
+        1,null,null,null,1,null,null,null, 1,null,null,null,1,1,null,null],
+  HAT: [null,null,1,null,null,null,1,null, null,null,1,null,null,null,1,null,
+        null,null,1,null,null,null,1,null, null,null,1,null,null,null,1,1,
+        null,null,1,null,null,null,1,null, null,null,1,null,null,1,1,null,
+        null,null,1,null,null,null,1,null, null,null,1,null,1,null,1,1],
+  mtof(m){ return 440 * Math.pow(2, (m-69)/12); },
+
+  playStep(step, time){
+    const m = this.MEL[step]; if(m) this.tone(this.mtof(m), time, 0.13, 'square', 0.20, this.musicGain);
+    const b = this.BASS[step];
+    if(b) this.tone(this.mtof(b), time, 0.20, 'triangle', 0.30, this.musicGain);
+    if(this.KICK[step]){ this.tone(140, time, 0.10, 'sine', 0.40, this.musicGain, 45); }
+    if(this.HAT[step]) this.noise(time, 0.028, 0.07, 6500, this.musicGain, 'highpass');
+  },
+  startMusic(){
+    this.init(); if(!this.ctx || this.started) return;
+    this.started = true;
+    this.step = 0;
+    this.nextTime = this.ctx.currentTime + 0.12;
+    const spb = 60 / this.BPM / 4;
+    const tick = ()=>{
+      if(!this.ctx) return;
+      while(this.nextTime < this.ctx.currentTime + 0.14){
+        this.playStep(this.step % 64, this.nextTime);
+        this.nextTime += spb;
+        this.step++;
+      }
+    };
+    tick();
+    this.timer = setInterval(tick, 25);
+  },
+  setMusic(on){
+    this.musicOn = on;
+    try { localStorage.setItem('yzx_music', on ? '1' : '0'); } catch(e){}
+    if(on){ this.resume(); this.startMusic(); }
+    if(this.musicGain && this.ctx) this.musicGain.gain.setTargetAtTime(on ? 0.20 : 0, this.ctx.currentTime, 0.05);
+  },
+  setSfx(on){
+    this.sfxOn = on;
+    try { localStorage.setItem('yzx_sfx', on ? '1' : '0'); } catch(e){}
+    if(this.sfxGain && this.ctx) this.sfxGain.gain.setTargetAtTime(on ? 0.34 : 0, this.ctx.currentTime, 0.03);
+  }
+};
+
+/* ------------------------------------------------------------------ 弹窗 */
+const overlay = document.getElementById('overlay');
+const dialog  = document.getElementById('dialog');
+const dlgTitle= document.getElementById('dlgTitle');
+const dlgSub  = document.getElementById('dlgSub');
+const dlgBody = document.getElementById('dlgBody');
+const dlgIcon = document.getElementById('dlgIcon');
+const sceneTag= document.getElementById('sceneTag');
+let dialogOpen = false, closing = false;
+
+function fillDialog(h){
+  dlgTitle.textContent = h.name;
+  dlgSub.textContent = h.sub;
+  dlgIcon.style.background = h.icon;
+  let html = '';
+  for(const [k,v] of h.rows) html += `<div class="row"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  if(h.quote) html += `<div class="quote">${h.quote}</div>`;
+  if(h.cta)   html += `<div class="cta">${h.cta}</div>`;
+  dlgBody.innerHTML = html;
+  dlgBody.scrollTop = 0;
+}
+
+function setSceneTag(text){
+  sceneTag.textContent = text;
+  sceneTag.classList.add('show');
+}
+
+function showDialog(h){
+  fillDialog(h);
+  overlay.classList.add('show');
+  dialog.classList.remove('closing');
+  dialogOpen = true; closing = false;
+  Audio_.sfx('open');
+  setSceneTag('📍 ' + h.name);
+}
+
+function closeDialog(){
+  if(!dialogOpen || closing) return;
+  closing = true;
+  Audio_.sfx('close');
+  dialog.classList.add('closing');
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    dialog.classList.remove('closing');
+    dialogOpen = false; closing = false;
+    sceneTag.classList.remove('show');
+    exitHouse();
+  }, 175);
+}
+
+/* 走入 / 走出小屋 */
+function enterHouse(h){
+  player.target = h;
+  h.doorOpen = true;
+  h.anim = 1;
+  Audio_.sfx('doorOpen');
+  player.state = 'enter';
+  player.alpha = 1;
+  player.enterT = 0;
+  player.enterFrom = { x: player.x, y: player.y };
+  player.dir = 'up';
+  player.moving = true;
+}
+function exitHouse(){
+  const h = player.target;
+  if(!h) return;
+  player.state = 'exit';
+  player.alpha = 0;
+  player.x = h.dx*TILE + 8;
+  player.y = h.dy*TILE + 8;
+  player.dir = 'down';
+  player.moving = false;
+  h.doorOpen = false; h.anim = 0;
+  Audio_.sfx('doorClose');
+  setTimeout(()=>{
+    /* 淡入 */
+    let a = 0;
+    const fade = setInterval(()=>{
+      a += 0.09; player.alpha = Math.min(1, a);
+      if(a >= 1){ clearInterval(fade); player.alpha = 1; }
+    }, 22);
+    /* 走回广场 */
+    setTimeout(()=>{ walkTo(8, 8, null); }, 180);
+  }, 210);
+}
+
+/* ------------------------------------------------------------------ 交互 */
+const bump = { t:0, x:0, y:0, show:false };
+function screenToTile(ev){
+  const r = cvs.getBoundingClientRect();
+  const sx = (ev.clientX - r.left) / r.width * VW;
+  const sy = (ev.clientY - r.top ) / r.height * VH;
+  return { tx: Math.floor(sx/TILE), ty: Math.floor(sy/TILE), sx, sy };
+}
+
+cvs.addEventListener('pointerdown', ev=>{
+  Audio_.resume();
+  if(!Audio_.started && Audio_.musicOn) Audio_.startMusic();
+  if(dialogOpen || player.state === 'enter' || player.state === 'inside' || player.state === 'exit') return;
+
+  const { tx, ty } = screenToTile(ev);
+
+  /* 点到门 → 走进这间屋 */
+  for(const h of HOUSES){
+    if(tx === h.dx && ty === h.dy){
+      if(Math.abs(h.dx-Math.floor(player.x/TILE)) + Math.abs(h.dy-Math.floor(player.y/TILE)) <= 1){
+        /* 紧挨着门，直接进 */
+        player.x = h.dx*TILE+8; player.y = h.dy*TILE+8;
+        player.path = []; player.moving = false;
+        enterHouse(h);
+      } else if(!walkTo(h.dx, h.dy, ()=>enterHouse(h))){
+        Audio_.sfx('bump'); showBump(tx,ty);
+      }
+      return;
+    }
+  }
+  /* 点到小屋墙体 → 提示 */
+  for(const h of HOUSES){
+    if(tx>=h.x && tx<h.x+h.w && ty>=h.y && ty<h.y+h.h){
+      Audio_.sfx('bump'); showBump(tx,ty);
+      setSceneTag('💡 要点门才能进去哦');
+      setTimeout(()=>sceneTag.classList.remove('show'), 1400);
+      return;
+    }
+  }
+  /* 普通地面 → 走过去 */
+  Audio_.sfx('click');
+  if(!walkTo(tx, ty, null)){ Audio_.sfx('bump'); showBump(tx,ty); }
+});
+function showBump(tx,ty){ bump.show = true; bump.t = 34; bump.x = tx*TILE+8; bump.y = ty*TILE; }
+
+/* 关闭按钮：点 ✕ 或点遮罩或 Esc */
+document.getElementById('dlgClose').addEventListener('click', e=>{ e.stopPropagation(); closeDialog(); });
+overlay.addEventListener('click', e=>{ if(e.target === overlay) closeDialog(); });
+window.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && dialogOpen) closeDialog();
+  else if(e.key === '1') tryEnter(0);
+  else if(e.key === '2') tryEnter(1);
+  else if(e.key === '3') tryEnter(2);
+  else if(e.key === '4') tryEnter(3);
+});
+function tryEnter(i){
+  const h = HOUSES[i]; if(!h) return;
+  Audio_.resume(); if(!Audio_.started && Audio_.musicOn) Audio_.startMusic();
+  if(dialogOpen || ['enter','inside','exit'].includes(player.state)) return;
+  if(!walkTo(h.dx, h.dy, ()=>enterHouse(h))){ Audio_.sfx('bump'); showBump(h.dx,h.dy); }
+}
+
+/* 音乐 / 音效开关 */
+const btnMusic = document.getElementById('btnMusic');
+const btnSfx   = document.getElementById('btnSfx');
+function paintBtns(){
+  btnMusic.textContent = Audio_.musicOn ? '♪ 音乐：开' : '♪ 音乐：关';
+  btnSfx.textContent   = Audio_.sfxOn   ? '♬ 音效：开' : '♬ 音效：关';
+  btnMusic.classList.toggle('off', !Audio_.musicOn);
+  btnSfx.classList.toggle('off', !Audio_.sfxOn);
+}
+btnMusic.addEventListener('click', ()=>{
+  Audio_.resume(); Audio_.setMusic(!Audio_.musicOn); paintBtns(); Audio_.sfx('click');
+});
+btnSfx.addEventListener('click', ()=>{
+  Audio_.resume(); Audio_.setSfx(!Audio_.sfxOn); paintBtns(); if(Audio_.sfxOn) Audio_.sfx('click');
+});
+paintBtns();
+
+/* 首次任意交互 → 启动音频 */
+function bootAudio(){
+  Audio_.resume();
+  if(Audio_.musicOn) Audio_.startMusic();
+  window.removeEventListener('pointerdown', bootAudio);
+  window.removeEventListener('keydown', bootAudio);
+}
+window.addEventListener('pointerdown', bootAudio);
+window.addEventListener('keydown', bootAudio);
+
+/* ------------------------------------------------------------------ 主循环 */
+let lastT = performance.now(), stepAcc = 0;
+
+function update(dt, now){
+  /* 门动画 */
+  for(const h of HOUSES){
+    const target = h.doorOpen ? 1 : 0;
+    if(h.anim !== target){
+      const sp = h.doorOpen ? 4.6 : 6.2;
+      h.anim += (target - h.anim) * Math.min(1, sp*dt);
+      if(Math.abs(h.anim - target) < 0.02) h.anim = target;
+      h.open = h.anim;
+    } else h.open = h.anim;
+  }
+
+  /* 走动 */
+  if(player.state === 'walk' && player.moving){
+    if(player.path.length){
+      const wp = player.path[0];
+      const dx = wp.x - player.x, dy = wp.y - player.y;
+      const dist = Math.hypot(dx, dy);
+      const move = player.speed * dt;
+      if(dist <= move){
+        player.x = wp.x; player.y = wp.y; player.path.shift();
+        if(player.path.length){
+          const n = player.path[0];
+          const ndx = n.x - player.x, ndy = n.y - player.y;
+          player.dir = Math.abs(ndx) > Math.abs(ndy) ? (ndx>0?'right':'left') : (ndy>0?'down':'up');
+        }
+        if(!player.path.length){
+          player.moving = false;
+          const after = player.after; player.after = null;
+          if(after) after(); else Audio_.sfx('coin');
+          /* 注意：after() 里可能已经把 state 改成 'enter'（开门进屋），
+             所以只有它没接管状态时才回到 idle —— 顺序不能颠倒 */
+          if(player.state === 'walk') player.state = 'idle';
+        }
+      } else {
+        const ndx = dx/dist, ndy = dy/dist;
+        player.x += ndx*move; player.y += ndy*move;
+        player.dir = Math.abs(ndx) > Math.abs(ndy) ? (ndx>0?'right':'left') : (ndy>0?'down':'up');
+        /* 脚步声 */
+        stepAcc += dt;
+        if(stepAcc >= 0.245){ stepAcc = 0; Audio_.sfx('step'); }
+      }
+      player.step += dt * 8.5;
+    } else { player.moving = false; player.state = 'idle'; }
+  }
+
+  /* 进门：0.60s 走进门里（基于时间，不依赖帧率） */
+  if(player.state === 'enter'){
+    player.enterT = (player.enterT || 0) + dt;
+    const ep = Math.min(1, player.enterT / 0.60);
+    const h = player.target;
+    const gx = h.dx*TILE + 8, gy = h.dy*TILE + 6;
+    const ease = ep * ep * (3 - 2 * ep);
+    player.x = player.enterFrom.x + (gx - player.enterFrom.x) * ease;
+    player.y = player.enterFrom.y + (gy - player.enterFrom.y) * ease;
+    player.step += dt * 7.5;
+    player.alpha = ep < 0.42 ? 1 : Math.max(0, 1 - (ep - 0.42) / 0.47);
+    if(ep >= 1){
+      player.alpha = 0; player.moving = false;
+      player.state = 'inside';
+      showDialog(h);
+    }
+  }
+
+  /* 气泡提示 */
+  if(bump.show){ bump.t--; if(bump.t <= 0) bump.show = false; }
+}
+
+function render(now){
+  ctx.clearRect(0,0,VW,VH);
+  drawGround(now);
+
+  /* 喷泉（在玩家下方，先画） */
+  drawFountain(now);
+  drawSign();
+
+  /* 按 y 排序绘制：小屋 / 树 / 石头 / 玩家 */
+  const objs = [];
+  for(const h of HOUSES) objs.push({y:(h.y+h.h)*TILE, d:()=>drawHouse(h, now)});
+  objs.push({y:2*TILE+32, d:()=>drawExtraHouse(now)});
+  for(const t of world.trees)  objs.push({y:(t.y+1)*TILE, d:()=>drawTree(t.x,t.y)});
+  for(const b of world.bushes) objs.push({y:(b.y+1)*TILE, d:()=>drawBush(b.x,b.y)});
+  for(const r of world.rocks)  objs.push({y:(r.y+1)*TILE, d:()=>drawRock(r.x,r.y)});
+  objs.push({y: player.y + 16, d:()=>{ drawShadow(); drawPlayer(now); }});
+  objs.sort((a,b)=>a.y-b.y);
+  for(const o of objs) o.d();
+
+  /* 花 / 草簇（贴地，最上层补画以免被遮挡） */
+  for(const f of world.flowers) drawFlower(f, now);
+  for(const tu of world.tufts)  drawTuft(tu);
+
+  /* 门的可点击高亮 */
+  for(const h of HOUSES){
+    const pulse = (Math.sin(now/420) + 1) / 2;
+    if(pulse > 0.35){
+      ctx.globalAlpha = 0.20 + pulse*0.35;
+      px(h.dx*TILE+1, h.dy*TILE+2, 14, 2, '#fff3b0');
+      px(h.dx*TILE+1, h.dy*TILE+13, 14, 2, '#fff3b0');
+      px(h.dx*TILE+1, h.dy*TILE+2, 2, 13, '#fff3b0');
+      px(h.dx*TILE+13, h.dy*TILE+2, 2, 13, '#fff3b0');
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* 气泡 */
+  if(bump.show){
+    const bx = bump.x, by = bump.y - 14;
+    px(bx-6, by-7, 13, 10, '#fdf3d8');
+    px(bx-6, by-7, 13, 1, '#6b4420');
+    px(bx-6, by+2, 13, 1, '#6b4420');
+    px(bx-6, by-7, 1, 10, '#6b4420');
+    px(bx+6, by-7, 1, 10, '#6b4420');
+    px(bx-1, by+3, 2, 3, '#fdf3d8');
+    ctx.fillStyle = '#c0453c';
+    ctx.font = 'bold 8px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('!', bx, by-2);
+  }
+
+  /* 玩家进门前压暗 */
+  if(player.state === 'enter' && (player.enterT || 0) > 0.15){
+    ctx.globalAlpha = 0.06;
+    px(0,0,VW,VH,'#000');
+    ctx.globalAlpha = 1;
+  }
+}
+
+function loop(now){
+  /* 无论单帧出什么错，都必须继续下一帧，绝不能把动画打死 */
+  try {
+    const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000));
+    lastT = now;
+    update(dt, now);
+    render(now);
+  } catch(e){
+    /* 静默跳过这一帧 */
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ------------------------------------------------------------------ 自适应 */
+const frame = document.getElementById('frame');
+function fit(){
+  const stage = document.getElementById('stage');
+  const pad = 20;
+  const availW = stage.clientWidth  - pad;
+  const availH = stage.clientHeight - pad;
+  let s = Math.min(availW / VW, availH / VH);
+  s = Math.max(1, Math.floor(s * 100) / 100);
+  cvs.style.width  = (VW * s) + 'px';
+  cvs.style.height = (VH * s) + 'px';
+}
+window.addEventListener('resize', fit);
+
+/* ------------------------------------------------------------------ 启动 */
+fit();
+/* 初始让小人从广场中心出发 */
+player.x = 8*TILE + 8; player.y = 8*TILE + 8;
+requestAnimationFrame(loop);
+
+/* 开场提示 */
+setTimeout(()=>{
+  setSceneTag('🌾 欢迎来到我的小岛 · 点门进来看看');
+  setTimeout(()=>sceneTag.classList.remove('show'), 3200);
+}, 600);
+
+/* 深链：URL 带 #resume / #intro / #trait / #skill（或 1~4）可直接打开对应小屋 */
+(function(){
+  const key = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace('#','').toLowerCase();
+  if(!key) return;
+  const byId = { '1':'resume', '2':'intro', '3':'trait', '4':'skill' };
+  const want = byId[key] || key;
+  const h = HOUSES.find(x=>x.id===want || x.name===key);
+  if(!h) return;
+  setTimeout(()=>{
+    Audio_.resume();
+    if(!walkTo(h.dx, h.dy, ()=>enterHouse(h))){
+      player.x = h.dx*TILE+8; player.y = h.dy*TILE+8;
+      enterHouse(h);
+    }
+  }, 900);
+})();
+</script>
+</body>
+</html>
